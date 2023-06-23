@@ -1,3 +1,5 @@
+![fourier](https://github.com/ishaanvatus/audio/assets/34275616/a3715534-751f-448f-b542-95c5ca95021e)
+
 # How Does a Computer store sound?
 
 ## Introduction and terminologies explained
