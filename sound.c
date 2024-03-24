@@ -4,12 +4,13 @@
 double triangle(int n, double freq, double time);
 double sine(double amp, double freq, double time);
 double square(int n, double freq, double time);
+double sawtooth(double freq, double time);
 
 int main(int argc, char *argv[])
 {
 	int sample_rate = 48000;
-	double freq = 1;
-	double amp = 1;
+	double freq = 261.63;
+	double amp = 0.1;
 	int depth = atoi(argv[1]);
 	double duration = 1;
 	double time = 0;
@@ -20,6 +21,7 @@ int main(int argc, char *argv[])
 	FILE *fp = fopen("sine.bin", "wb");
 	FILE *sq = fopen("square.bin", "wb");
 	FILE *sm = fopen("triangle.bin", "wb");
+	FILE *saw = fopen("sawtooth.bin", "wb");
 	FILE *gp = fopen("plot", "w");
 	fprintf(gp, "plot '-'\n");
 	if (fp == NULL)
@@ -30,7 +32,7 @@ int main(int argc, char *argv[])
 	{
 		val = 10000.0*sine(amp, freq, time);
 		temp = (short) val;
- 		fwrite((const void*) &temp,sizeof(short),1,fp);
+ 		fwrite( &temp,sizeof(short),1,fp);
 		time = i/(1.0*sample_rate);
 		i++;
 	}
@@ -39,7 +41,7 @@ int main(int argc, char *argv[])
 	while (i <= sample_rate*duration)
 	{
 		temp = (short) 1000.0*square(depth, freq, time);
-		fwrite((const void*) &temp,sizeof(short),1,sq);
+		fwrite(&temp,sizeof(short),1,sq);
 		fprintf(gp, "%lf, %d\n", time, temp);
 		time = i/(1.0*sample_rate);
 		i++;
@@ -50,6 +52,15 @@ int main(int argc, char *argv[])
 	{
 		temp = (short) 10000.0*triangle(depth, freq, time);
 		fwrite((const void*) &temp,sizeof(short),1,sm);
+		time = i/(1.0*sample_rate);
+		i++;
+	}
+	time = 0; 
+	i = 0;
+	while (i <= sample_rate*duration)
+	{
+		temp = (short) 10000.0*sawtooth(freq, time);
+		fwrite((const void*) &temp,sizeof(short),1,saw);
 		time = i/(1.0*sample_rate);
 		i++;
 	}
@@ -90,4 +101,10 @@ double triangle(int n, double freq, double time)
 		k += 2;
 	}
 	return triangle;
+}
+double sawtooth(double freq, double time)
+{
+    double saw;
+    double p = 1/freq;
+    return 2*((time/p) - floor((1/2) + (time/p)));
 }

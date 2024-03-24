@@ -1,3 +1,7 @@
 #!/bin/bash
 
-aplay -r 48000 -f S16_LE $1
+#aplay -r 48000 -f S16_LE $1
+aplay -r 48000 -f S16_LE triangle.bin
+aplay -r 48000 -f S16_LE square.bin
+aplay -r 48000 -f S16_LE sine.bin
+aplay -r 48000 -f S16_LE sawtooth.bin
