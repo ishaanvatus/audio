@@ -4,9 +4,9 @@
 
 int main(int argc, char *argv[])
 {
-	int sample_rate = 48000;
+	int sample_rate = 4000;
 	//double freq = 261.63;
-	double freq = 277.183;
+	double freq = 441;
 	double amp = 1;
 	int depth = atoi(argv[1]);
 	double duration = 3;
