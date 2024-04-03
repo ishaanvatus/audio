@@ -1,69 +1,43 @@
-#include <stdio.h>
-#include <math.h>
+#include <LPC17xx.h>
+#include <stdbool.h>
 #include "sound.h"
+#define PRESCALE (3000-1)
 
-int main(int argc, char *argv[])
+void timer_init(void);
+void delay(unsigned long int ms);
+int main(void)
 {
-	int sample_rate = 4000;
-	//double freq = 261.63;
-	double freq = 441;
-	double amp = 1;
-	int depth = atoi(argv[1]);
-	double duration = 3;
-	double time = 0;
-	double val = 0;
-	short temp = 0;
-	int i = 0;
-
-	FILE *fp = fopen("sine.bin", "wb");
-	FILE *sq = fopen("square.bin", "wb");
-	FILE *sm = fopen("triangle.bin", "wb");
-	FILE *saw = fopen("sawtooth.bin", "wb");
-	FILE *gp = fopen("plot", "w");
-	fprintf(gp, "plot '-'\n");
-	if (fp == NULL)
-	{
-		return -1;
-	}
-	while (i <= sample_rate*duration)
-	{
-		val = 10000.0*sine(amp, freq, time);
-		temp = (short) val;
- 		fwrite( &temp,sizeof(short),1,fp);
-		time = i/(1.0*sample_rate);
-		i++;
-	}
-	time = 0; 
-	i = 0;
-	while (i <= sample_rate*duration)
-	{
-		temp = (short) 10000.0*square(depth, freq, time);
-		fwrite(&temp,sizeof(short),1,sq);
-		fprintf(gp, "%lf, %d\n", time, temp);
-		time = i/(1.0*sample_rate);
-		i++;
-	}
-	time = 0; 
-	i = 0;
-	while (i <= sample_rate*duration)
-	{
-		temp = (short) 10000.0*triangle(depth, freq, time);
-		fwrite((const void*) &temp,sizeof(short),1,sm);
-		time = i/(1.0*sample_rate);
-		i++;
-	}
-	time = 0; 
-	i = 0;
-	while (i <= sample_rate*duration)
-	{
-		temp = (short) 10000.0*sawtooth(freq, time);
-		fwrite((const void*) &temp,sizeof(short),1,saw);
-		time = i/(1.0*sample_rate);
-		i++;
-	}
-	fprintf(gp, "e\n");
-	fflush(gp);
-	fclose(fp);
-	fclose(sq);
-	fclose(gp);
+	timer_init();
+	LPC_GPIO1->FIODIR |= 1<<23;
+	while (true) {
+		LPC_GPIO1->FIOSET = 1<<23;
+		delay(1);
+		LPC_GPIO1->FIOCLR = 1<<23;
+		delay(1);
 }
+}
+
+void timer_init(void)
+{
+	/*Assuming that PLL0 has been setup with CCLK = 100Mhz and PCLK = 25Mhz.*/
+	LPC_SC->PCONP |= (1<<1); //Power up TIM0. By default TIM0 and TIM1 are enabled.
+	//LPC_SC->PCLKSEL0 &= ~(0x3<<3); //Set PCLK for timer = CCLK/4 = 100/4 (default)
+
+	LPC_TIM0->CTCR = 0x0;
+	LPC_TIM0->PR = PRESCALE; //Increment TC at every 29999+1 clock cycles
+	//3000 clock cycles @3Mhz = 0.1 mS
+
+	LPC_TIM0->TCR = 0x02; //Reset Timer
+}
+
+void delay(unsigned long int milliseconds) //Using Timer0
+{
+	LPC_TIM0->TCR = 0x02; //Reset Timer
+
+	LPC_TIM0->TCR = 0x01; //Enable timer
+
+	while(LPC_TIM0->TC < milliseconds); //wait until timer counter reaches the desired delay
+
+	LPC_TIM0->TCR = 0x00; //Disable timer
+}
+
